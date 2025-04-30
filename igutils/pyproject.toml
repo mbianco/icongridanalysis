@@ -1,0 +1,13 @@
+[project]
+name = "igutils"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "Mauro Bianco", email = "mauro.bianco@cscs.ch" }
+]
+requires-python = ">=3.13"
+dependencies = []
+
+[project.scripts]
+igutils = "igutils:main"
