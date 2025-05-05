@@ -68,3 +68,6 @@ def pentagons_paths_vertices(grid):
 		del(mark)
 		gc.collect()
 	return paths
+
+def mark_rhomboid(closed_path, inner_vertex, grid):
+	None
