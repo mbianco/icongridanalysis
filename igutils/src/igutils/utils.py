@@ -250,11 +250,16 @@ class RenumberedGridVertices:
 		assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
 		return mark_rhomboid(rhomboid, self.paths, self._grid)
 	
-	def plot_rhomboid(self, rhomboid: Tuple[int, int, int, int]):
+	def plot_rhomboid(self, rhomboid: Tuple[int, int, int, int], **kwargs):
+		pltsize = (100, 80)
+		if 'size' in kwargs.keys():
+			assert(type(kwargs['size'] == Tuple[int, int]))
+			pltsize = kwargs['size']
+
 		assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
 		voc = self._grid.vertices_of_vertex.values
 		vsequence = mark_rhomboid(rhomboid, self.paths, self._grid)
-		fig = plt.figure(figsize=(100, 80)) # Need to find a way of setting the size right...
+		fig = plt.figure(figsize=pltsize) # Need to find a way of setting the size right...
 		ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mollweide())
 		ax.set_global()
 		ax.add_feature(cfeature.LAND, zorder=0, edgecolor="black")
