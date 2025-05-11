@@ -212,23 +212,33 @@ class RenumberedGridVertices:
 			skip_check = kwargs['skip_check']
 
 		verbose and print("Opening file")
-		self.grid = xr.open_dataset(grid_file)
+		self._grid = xr.open_dataset(grid_file)
+
+		try:
+			print(self._grid.symmetry)
+			is_icosahedron = False
+		except:
+			is_icosahedron = True
+
+		if not is_icosahedron:
+			raise Exception("The grid file contains a grid which is not an icosahedron")
+		
 		if not skip_check:
 			verbose and print("Check consistency")
-			check_consistency(self.grid)
+			check_consistency(self._grid)
 		else:
 			verbose and print("[SKIPPED] Check consistency")
 
 		verbose and print("Find pentagons")
-		self.eov = find_pentagons_vertices(self.grid)
+		self.eov = find_pentagons_vertices(self._grid)
 
 		verbose and print("Find paths between pentagons")
-		self.paths = pentagons_paths_vertices(self.grid)
+		self.paths = pentagons_paths_vertices(self._grid)
 
 		self.interesting_path_length = min([ len(x) for x in self.paths.values() if len(x)>1])
 
 		verbose and print("Finding rhomboids")
-		self.rhomboids_north, self.rhomboids_south = find_rhomboids(self.eov, self.grid, self.paths, self.interesting_path_length)
+		self.rhomboids_north, self.rhomboids_south = find_rhomboids(self.eov, self._grid, self.paths, self.interesting_path_length)
 
 	def get_rhomboid_north(self, i: int):
 		return self.rhomboids_north[i]
@@ -238,12 +248,12 @@ class RenumberedGridVertices:
 
 	def get_rhomboids(self, rhomboid: Tuple[int, int, int, int]):
 		assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
-		return mark_rhomboid(rhomboid, self.paths, self.grid)
+		return mark_rhomboid(rhomboid, self.paths, self._grid)
 	
 	def plot_rhomboid(self, rhomboid: Tuple[int, int, int, int]):
 		assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
-		voc = self.grid.vertices_of_vertex.values
-		vsequence = mark_rhomboid(rhomboid, self.paths, self.grid)
+		voc = self._grid.vertices_of_vertex.values
+		vsequence = mark_rhomboid(rhomboid, self.paths, self._grid)
 		fig = plt.figure(figsize=(100, 80)) # Need to find a way of setting the size right...
 		ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mollweide())
 		ax.set_global()
@@ -251,13 +261,13 @@ class RenumberedGridVertices:
 		pad = ''
 		v = 0
 		transformatio = ccrs.Geodetic()
-		for v1, v2, v3, v4, v5, v6 in self.grid.vertices_of_vertex.values.T - 1:
+		for v1, v2, v3, v4, v5, v6 in self._grid.vertices_of_vertex.values.T - 1:
 			i = np.array([v, v1])
 			for vi in [v1, v2, v3, v4, v5]:
 				i = np.array([v, vi])
 				plt.plot(
-					np.rad2deg(self.grid.vertices_of_vertex.vlon[i]),
-					np.rad2deg(self.grid.latitude_vertices.vlat[i]),
+					np.rad2deg(self._grid.vertices_of_vertex.vlon[i]),
+					np.rad2deg(self._grid.latitude_vertices.vlat[i]),
 					c="k",
 					lw=1,
 					alpha=0.1,
@@ -266,8 +276,8 @@ class RenumberedGridVertices:
 			if v6 > 0:
 				i = np.array([v, v6])
 				plt.plot(
-					np.rad2deg(self.grid.vertices_of_vertex.vlon[i]),
-					np.rad2deg(self.grid.latitude_vertices.vlat[i]),
+					np.rad2deg(self._grid.vertices_of_vertex.vlon[i]),
+					np.rad2deg(self._grid.latitude_vertices.vlat[i]),
 					c="k",
 					lw=1,
 					alpha=0.1,
@@ -282,18 +292,22 @@ class RenumberedGridVertices:
 			#             )
 			v=v+1
 		plt.scatter(
-			[float(np.rad2deg(self.grid.vlon[x-1])) for x in vsequence],
-			[float(np.rad2deg(self.grid.vlat[x-1])) for x in vsequence],
+			[float(np.rad2deg(self._grid.vlon[x-1])) for x in vsequence],
+			[float(np.rad2deg(self._grid.vlat[x-1])) for x in vsequence],
 			c = 'r', s = 15, transform=transformatio
 			)
 
 		ll = 0
 		for x in vsequence:
-			plt.text(float(np.rad2deg(self.grid.vlon[x-1])),
-					float(np.rad2deg(self.grid.vlat[x-1])),
+			plt.text(float(np.rad2deg(self._grid.vlon[x-1])),
+					float(np.rad2deg(self._grid.vlat[x-1])),
 					str(ll), transform=transformatio
 					)
 			ll += 1
 
 		plt.show()
 		plt.close()
+
+	@property
+	def grid(self):
+		return self._grid
