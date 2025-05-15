@@ -204,7 +204,7 @@ class RenumberedGridVertices:
 	def __init__(self, grid_file: str, **kwargs):
 		verbose = False
 		skip_check = False
-		print(kwargs)
+
 		if 'verbose' in kwargs.keys():
 			verbose = kwargs['verbose']
 
@@ -249,32 +249,64 @@ class RenumberedGridVertices:
 	def get_rhomboids_vsequence(self, rhomboid: Tuple[int, int, int, int]):
 		return mark_rhomboid(rhomboid, self._paths, self._grid)
 	
-	def get_cells(self, rhomboid: Tuple[int, int, int, int]):
+	def get_cells(self, rhomboid: Tuple[int, int, int, int], **kwargs):
+		with_color = False
+		if 'with_color' in kwargs.keys():
+			with_color = kwargs['with_color']
+
 		rhomboid_seq = self.get_rhomboids_vsequence(rhomboid)
 		out = []
-		for i in range(self.interesting_path_length-1):
-			for j in range(self.interesting_path_length-1):
-				v1 = rhomboid_seq[i*self.interesting_path_length+j]
-				v2 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
-				v3 = rhomboid_seq[i*self.interesting_path_length+j+1]
-				c1 = self.grid.cells_of_vertex.values[:,v1-1]
-				c2 = self.grid.cells_of_vertex.values[:,v2-1]
-				c3 = self.grid.cells_of_vertex.values[:,v3-1]
-				intersect = [c for c in c1 if c in c2 and c in c3]
-				assert(len(intersect) == 1)
-				assert(intersect[0] != -1)
-				out.append(int(intersect[0]-1))
+		if with_color:
+			print("WITH COLOR")
+			for i in range(self.interesting_path_length-1):
+				for j in range(self.interesting_path_length-1):
+					v1 = rhomboid_seq[i*self.interesting_path_length+j]
+					v2 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
+					v3 = rhomboid_seq[i*self.interesting_path_length+j+1]
+					c1 = self.grid.cells_of_vertex.values[:,v1-1]
+					c2 = self.grid.cells_of_vertex.values[:,v2-1]
+					c3 = self.grid.cells_of_vertex.values[:,v3-1]
+					intersect = [c for c in c1 if c in c2 and c in c3]
+					assert(len(intersect) == 1)
+					assert(intersect[0] != -1)
+					out.append(int(intersect[0]-1))
 
-				v1 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
-				v2 = rhomboid_seq[i*self.interesting_path_length+j+1]
-				v3 = rhomboid_seq[(i+1)*self.interesting_path_length+j+1]
-				c1 = self.grid.cells_of_vertex.values[:,v1-1]
-				c2 = self.grid.cells_of_vertex.values[:,v2-1]
-				c3 = self.grid.cells_of_vertex.values[:,v3-1]
-				intersect = [c for c in c1 if c in c2 and c in c3]
-				assert(len(intersect) == 1)
-				assert(intersect[0] != -1)
-				out.append(int(intersect[0]-1))
+			for i in range(self.interesting_path_length-1):
+				for j in range(self.interesting_path_length-1):
+					v1 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
+					v2 = rhomboid_seq[i*self.interesting_path_length+j+1]
+					v3 = rhomboid_seq[(i+1)*self.interesting_path_length+j+1]
+					c1 = self.grid.cells_of_vertex.values[:,v1-1]
+					c2 = self.grid.cells_of_vertex.values[:,v2-1]
+					c3 = self.grid.cells_of_vertex.values[:,v3-1]
+					intersect = [c for c in c1 if c in c2 and c in c3]
+					assert(len(intersect) == 1)
+					assert(intersect[0] != -1)
+					out.append(int(intersect[0]-1))
+		else:
+			for i in range(self.interesting_path_length-1):
+				for j in range(self.interesting_path_length-1):
+					v1 = rhomboid_seq[i*self.interesting_path_length+j]
+					v2 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
+					v3 = rhomboid_seq[i*self.interesting_path_length+j+1]
+					c1 = self.grid.cells_of_vertex.values[:,v1-1]
+					c2 = self.grid.cells_of_vertex.values[:,v2-1]
+					c3 = self.grid.cells_of_vertex.values[:,v3-1]
+					intersect = [c for c in c1 if c in c2 and c in c3]
+					assert(len(intersect) == 1)
+					assert(intersect[0] != -1)
+					out.append(int(intersect[0]-1))
+
+					v1 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
+					v2 = rhomboid_seq[i*self.interesting_path_length+j+1]
+					v3 = rhomboid_seq[(i+1)*self.interesting_path_length+j+1]
+					c1 = self.grid.cells_of_vertex.values[:,v1-1]
+					c2 = self.grid.cells_of_vertex.values[:,v2-1]
+					c3 = self.grid.cells_of_vertex.values[:,v3-1]
+					intersect = [c for c in c1 if c in c2 and c in c3]
+					assert(len(intersect) == 1)
+					assert(intersect[0] != -1)
+					out.append(int(intersect[0]-1))
 		return out
 
 	def plot_rhomboid(self, rhomboid: Tuple[int, int, int, int], **kwargs):
@@ -347,7 +379,11 @@ class RenumberedGridVertices:
 			assert(type(kwargs['size'] == Tuple[int, int]))
 			pltsize = kwargs['size']
 
-		cells = self.get_cells(rhomboid)
+		with_color = False
+		if 'with_color' in kwargs.keys():
+			with_color = kwargs['with_color']
+
+		cells = self.get_cells(rhomboid, with_color=with_color)
 		#print(len(cells))
 		fig = plt.figure(figsize=(30, 20)) # Need to find a way of setting the size right...
 		ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mollweide())
