@@ -233,12 +233,12 @@ class RenumberedGridVertices:
 		self.eov = find_pentagons_vertices(self._grid)
 
 		verbose and print("Find paths between pentagons")
-		self.paths = pentagons_paths_vertices(self._grid)
+		self._paths = pentagons_paths_vertices(self._grid)
 
 		self.interesting_path_length = min([ len(x) for x in self.paths.values() if len(x)>1])
 
 		verbose and print("Finding rhomboids")
-		self.rhomboids_north, self.rhomboids_south = find_rhomboids(self.eov, self._grid, self.paths, self.interesting_path_length)
+		self.rhomboids_north, self.rhomboids_south = find_rhomboids(self.eov, self._grid, self._paths, self.interesting_path_length)
 
 	def get_rhomboid_north(self, i: int):
 		return self.rhomboids_north[i]
@@ -246,19 +246,47 @@ class RenumberedGridVertices:
 	def get_rhomboid_south(self, i: int):
 		return self.rhomboids_south[i]
 
-	def get_rhomboids(self, rhomboid: Tuple[int, int, int, int]):
-		assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
-		return mark_rhomboid(rhomboid, self.paths, self._grid)
+	def get_rhomboids_vsequence(self, rhomboid: Tuple[int, int, int, int]):
+		return mark_rhomboid(rhomboid, self._paths, self._grid)
 	
+	def get_cells(self, rhomboid: Tuple[int, int, int, int]):
+		rhomboid_seq = self.get_rhomboids_vsequence(rhomboid)
+		out = []
+		for i in range(self.interesting_path_length-1):
+			for j in range(self.interesting_path_length-1):
+				v1 = rhomboid_seq[i*self.interesting_path_length+j]
+				v2 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
+				v3 = rhomboid_seq[i*self.interesting_path_length+j+1]
+				c1 = self.grid.cells_of_vertex.values[:,v1-1]
+				c2 = self.grid.cells_of_vertex.values[:,v2-1]
+				c3 = self.grid.cells_of_vertex.values[:,v3-1]
+				intersect = [c for c in c1 if c in c2 and c in c3]
+				assert(len(intersect) == 1)
+				assert(intersect[0] != -1)
+				out.append(int(intersect[0]-1))
+
+				v1 = rhomboid_seq[(i+1)*self.interesting_path_length+j]
+				v2 = rhomboid_seq[i*self.interesting_path_length+j+1]
+				v3 = rhomboid_seq[(i+1)*self.interesting_path_length+j+1]
+				c1 = self.grid.cells_of_vertex.values[:,v1-1]
+				c2 = self.grid.cells_of_vertex.values[:,v2-1]
+				c3 = self.grid.cells_of_vertex.values[:,v3-1]
+				intersect = [c for c in c1 if c in c2 and c in c3]
+				assert(len(intersect) == 1)
+				assert(intersect[0] != -1)
+				out.append(int(intersect[0]-1))
+		return out
+
 	def plot_rhomboid(self, rhomboid: Tuple[int, int, int, int], **kwargs):
 		pltsize = (100, 80)
 		if 'size' in kwargs.keys():
 			assert(type(kwargs['size'] == Tuple[int, int]))
 			pltsize = kwargs['size']
 
-		assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
-		voc = self._grid.vertices_of_vertex.values
-		vsequence = mark_rhomboid(rhomboid, self.paths, self._grid)
+		print(f'{self.rhomboids_north=}\n{self.rhomboids_south}')
+		#assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
+
+		vsequence = self.get_rhomboids_vsequence(rhomboid)
 		fig = plt.figure(figsize=pltsize) # Need to find a way of setting the size right...
 		ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mollweide())
 		ax.set_global()
@@ -313,6 +341,60 @@ class RenumberedGridVertices:
 		plt.show()
 		plt.close()
 
+	def plot_rhomboid_cell(self, rhomboid: Tuple[int, int, int, int], **kwargs):
+		pltsize = (100, 80)
+		if 'size' in kwargs.keys():
+			assert(type(kwargs['size'] == Tuple[int, int]))
+			pltsize = kwargs['size']
+
+		cells = self.get_cells(rhomboid)
+		#print(len(cells))
+		fig = plt.figure(figsize=(30, 20)) # Need to find a way of setting the size right...
+		ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mollweide())
+		ax.set_global()
+		ax.add_feature(cfeature.LAND, zorder=0, edgecolor="black")
+		pad = ''
+		c = 0
+		transformatio = ccrs.Geodetic()
+		for v1, v2, v3 in self.grid.vertex_of_cell.values.T - 1:
+			i = np.array([v1, v2, v3, v1])
+			plt.plot(
+					np.rad2deg(self.grid.vertex.vlon[i]),
+					np.rad2deg(self.grid.vertex.vlat[i]),
+					c="k",
+					lw=1,
+					alpha=0.1,
+					transform=transformatio,
+			)
+		for v1, v2, v3 in self.grid.vertex_of_cell.values.T[cells] - 1:
+			i = np.array([v1, v2, v3, v1])
+			plt.plot(
+					np.rad2deg(self.grid.vertex.vlon[i]),
+					np.rad2deg(self.grid.vertex.vlat[i]),
+					c="r",
+					lw=3,
+					alpha=0.1,
+					transform=transformatio,
+			)
+			ll = 0
+			for x in cells:
+				plt.text(float(np.rad2deg(self.grid.cell.clon[x])),
+						float(np.rad2deg(self.grid.cell.clat[x])),
+						str(ll), transform=transformatio
+						)
+				ll += 1
+
+		plt.show()
+		plt.close()
+
 	@property
 	def grid(self):
 		return self._grid
+	
+	@property
+	def main_path_length(self):
+		return self.interesting_path_length
+	
+	@property
+	def paths(self):
+		return self._paths

@@ -10,3 +10,5 @@ renum.plot_rhomboid(renum.get_rhomboid_north(4))
 ```
 
 The project uses `uv` for the setup.
+
+For examples of using the visualization: https://easy.gems.dkrz.de/Processing/playing_with_triangles/grid_index_ordering.html
