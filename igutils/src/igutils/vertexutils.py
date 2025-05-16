@@ -69,7 +69,7 @@ def pentagons_paths_vertices(grid):
 	paths = {}
 	for i in range(0, len(eov)):
 		mark = short_path_vertices(eov[i]+1, [x+1 for x in eov], grid)
-		for n in range(1, len(eov)):
+		for n in range(0, len(eov)):
 			paths[(eov[i]+1,eov[n]+1)] = backtrack_vertices(eov[i], eov[n], mark, grid)
 		del(mark)
 		gc.collect()
@@ -200,6 +200,7 @@ def mark_rhomboid(rhomboid, paths, grid): # rhomboid = (A, B, C, D)
 
 	return vertex_sequence
 
+
 class RenumberedGridVertices:
 	def __init__(self, grid_file: str, **kwargs):
 		verbose = False
@@ -257,7 +258,6 @@ class RenumberedGridVertices:
 		rhomboid_seq = self.get_rhomboids_vsequence(rhomboid)
 		out = []
 		if with_color:
-			print("WITH COLOR")
 			for i in range(self.interesting_path_length-1):
 				for j in range(self.interesting_path_length-1):
 					v1 = rhomboid_seq[i*self.interesting_path_length+j]
@@ -434,3 +434,7 @@ class RenumberedGridVertices:
 	@property
 	def paths(self):
 		return self._paths
+	
+	@property
+	def pentagons(self):
+		return [x+1 for x in self.eov]
