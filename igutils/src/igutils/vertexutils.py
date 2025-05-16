@@ -335,7 +335,7 @@ class RenumberedGridVertices:
 		return out
 
 	def plot_rhomboid(self, rhomboid: Rhomboid, **kwargs):
-		pltsize = (100, 80)
+		pltsize = (40, 20)
 		if 'size' in kwargs.keys():
 			assert(type(kwargs['size'] == Tuple[int, int]))
 			pltsize = kwargs['size']
@@ -389,7 +389,7 @@ class RenumberedGridVertices:
 		plt.close()
 
 	def plot_rhomboid_cell(self, rhomboid: Rhomboid, **kwargs):
-		pltsize = (100, 80)
+		pltsize = (40, 20)
 		if 'size' in kwargs.keys():
 			assert(type(kwargs['size'] == Tuple[int, int]))
 			pltsize = kwargs['size']
@@ -400,7 +400,7 @@ class RenumberedGridVertices:
 
 		cells = self.get_cells(rhomboid, with_color=with_color)
 		#print(len(cells))
-		fig = plt.figure(figsize=(30, 20)) # Need to find a way of setting the size right...
+		fig = plt.figure(figsize=pltsize) # Need to find a way of setting the size right...
 		ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mollweide())
 		ax.set_global()
 		ax.add_feature(cfeature.LAND, zorder=0, edgecolor="black")
@@ -427,13 +427,13 @@ class RenumberedGridVertices:
 					alpha=0.1,
 					transform=transformatio,
 			)
-			ll = 0
-			for x in cells:
-				plt.text(float(np.rad2deg(self.grid.cell.clon[x])),
-						float(np.rad2deg(self.grid.cell.clat[x])),
-						str(ll), transform=transformatio
-						)
-				ll += 1
+		ll = 0
+		for x in cells:
+			plt.text(float(np.rad2deg(self.grid.cell.clon[x])),
+					float(np.rad2deg(self.grid.cell.clat[x])),
+					str(ll), transform=transformatio
+					)
+			ll += 1
 
 		plt.show()
 		plt.close()
