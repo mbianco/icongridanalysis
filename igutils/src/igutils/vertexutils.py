@@ -27,6 +27,9 @@ class Rhomboid:
 
 	def __getitem__(self, i):
 		return self.t[i]
+	
+	def __str__(self):
+		return "(" + str(self.t[0]) + ", " + str(self.t[1]) + ", " + str(self.t[2]) + ", " + str(self.t[3]) + ")"
 
 def check_consistency(grid):
 	"""
