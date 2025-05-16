@@ -9,6 +9,8 @@ renum = igutils.RenumberedGridVertices("icon_grid_0013_R02B04_R.nc", verbose=Tru
 renum.plot_rhomboid(renum.get_rhomboid_north(4))
 ```
 
+[A working jupyter notebook with pictures](https://github.com/mbianco/icongridanalysis/blob/main/icongrid_class.ipynb)
+
 The project uses `uv` for the setup.
 
-For examples of using the visualization: https://easy.gems.dkrz.de/Processing/playing_with_triangles/grid_index_ordering.html
+For examples of using the visualization: [Examples of using the underlying libraries](https://easy.gems.dkrz.de/Processing/playing_with_triangles/grid_index_ordering.html)
