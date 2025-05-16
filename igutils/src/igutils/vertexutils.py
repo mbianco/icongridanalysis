@@ -5,6 +5,29 @@ import matplotlib.pylab as plt
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 
+class Rhomboid:
+	def __init__(self, a: int,b: int, c: int, d: int):
+		r'''
+		        A
+	    	    /\ 
+		       /  \ 
+		     B \  / C
+        	    \/
+		       D
+    	'''
+		self.t = (a, b, c, d)
+
+	@property
+	def upsidedown(self):
+		return Rhomboid(self.t[3], self.t[1], self.t[2], self.t[0])	
+	
+	@property
+	def mirrored(self):
+		return Rhomboid(self.t[0], self.t[2], self.t[1], self.t[3])	
+
+	def __getitem__(self, i):
+		return self.t[i]
+
 def check_consistency(grid):
 	"""
 	If this function fails, then it means that some in umbering is not right in the file.
@@ -112,7 +135,7 @@ def find_rhomboids(eov, grid, paths, path_length):
 				for i in range(5):
 					if len(paths[B, south_emi[i]]) == path_length and len(paths[C, south_emi[i]]) == path_length:
 						D = south_emi[i]
-						north_rhomboids.append((A, B, C, D))
+						north_rhomboids.append(Rhomboid(A, B, C, D))
 	south_rhomboids = []
 	A = south_pole
 	for ui in range(5):
@@ -125,7 +148,7 @@ def find_rhomboids(eov, grid, paths, path_length):
 				for i in range(5):
 					if len(paths[B, north_emi[i]]) == path_length and len(paths[C, north_emi[i]]) == path_length:
 						D = north_emi[i]
-						south_rhomboids.append((A, B, C, D))
+						south_rhomboids.append(Rhomboid(A, B, C, D))
 
 	return north_rhomboids, south_rhomboids
 
@@ -200,7 +223,6 @@ def mark_rhomboid(rhomboid, paths, grid): # rhomboid = (A, B, C, D)
 
 	return vertex_sequence
 
-
 class RenumberedGridVertices:
 	def __init__(self, grid_file: str, **kwargs):
 		verbose = False
@@ -247,10 +269,10 @@ class RenumberedGridVertices:
 	def get_rhomboid_south(self, i: int):
 		return self.rhomboids_south[i]
 
-	def get_rhomboids_vsequence(self, rhomboid: Tuple[int, int, int, int]):
+	def get_rhomboids_vsequence(self, rhomboid: Rhomboid):
 		return mark_rhomboid(rhomboid, self._paths, self._grid)
 	
-	def get_cells(self, rhomboid: Tuple[int, int, int, int], **kwargs):
+	def get_cells(self, rhomboid: Rhomboid, **kwargs):
 		with_color = False
 		if 'with_color' in kwargs.keys():
 			with_color = kwargs['with_color']
@@ -309,14 +331,11 @@ class RenumberedGridVertices:
 					out.append(int(intersect[0]-1))
 		return out
 
-	def plot_rhomboid(self, rhomboid: Tuple[int, int, int, int], **kwargs):
+	def plot_rhomboid(self, rhomboid: Rhomboid, **kwargs):
 		pltsize = (100, 80)
 		if 'size' in kwargs.keys():
 			assert(type(kwargs['size'] == Tuple[int, int]))
 			pltsize = kwargs['size']
-
-		print(f'{self.rhomboids_north=}\n{self.rhomboids_south}')
-		#assert rhomboid in self.rhomboids_north or rhomboid in self.rhomboids_south
 
 		vsequence = self.get_rhomboids_vsequence(rhomboid)
 		fig = plt.figure(figsize=pltsize) # Need to find a way of setting the size right...
@@ -348,13 +367,6 @@ class RenumberedGridVertices:
 					alpha=0.1,
 					transform=transformatio,
 				)
-			# if v+1 in mark:
-			#     plt.scatter([float(np.rad2deg(grid.vertices_of_vertex.vlon[v]))],
-			#             [float(np.rad2deg(grid.vertices_of_vertex.vlat[v]))],
-			#             c = 'r',
-			#             s = 10,
-			#             transform=transformatio
-			#             )
 			v=v+1
 		plt.scatter(
 			[float(np.rad2deg(self._grid.vlon[x-1])) for x in vsequence],
@@ -373,7 +385,7 @@ class RenumberedGridVertices:
 		plt.show()
 		plt.close()
 
-	def plot_rhomboid_cell(self, rhomboid: Tuple[int, int, int, int], **kwargs):
+	def plot_rhomboid_cell(self, rhomboid: Rhomboid, **kwargs):
 		pltsize = (100, 80)
 		if 'size' in kwargs.keys():
 			assert(type(kwargs['size'] == Tuple[int, int]))
